@@ -16,11 +16,13 @@ export default class extends Phaser.State {
 
     this.game.load.spritesheet('ship', '/assets/ship.png', 48, 32);
     this.game.load.spritesheet('bullet', '/assets/bullet.png', 5, 5);
+    this.game.load.image('star', '/assets/star.png');
+    this.game.load.image('color-picker', '/assets/color-picker.png');
     this.load.onLoadComplete.add(this.loadComplete, this)
   }
 
   loadComplete () {
-    this.state.start('Game')
+    this.state.start('Menu')
   }
 
 

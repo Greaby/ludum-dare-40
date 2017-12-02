@@ -5,5 +5,5 @@ export default {
     rotation: 180,
     acceleration: 1000,
     maxSpeed: 300,
-    drag: 20
+    drag: 100
 }

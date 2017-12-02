@@ -4,6 +4,7 @@ import Phaser from 'phaser'
 
 import BootState from './states/Boot'
 import GameState from './states/Game'
+import MenuState from './states/Menu'
 
 import config from './config'
 
@@ -13,6 +14,7 @@ class Game extends Phaser.Game {
 
     this.state.add('Boot', BootState, true)
     this.state.add('Game', GameState, false)
+    this.state.add('Menu', MenuState, false)
   }
 }
 
