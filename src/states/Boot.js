@@ -1,35 +1,27 @@
 import Phaser from 'phaser'
-import WebFont from 'webfontloader'
 
 export default class extends Phaser.State {
   init () {
-    this.stage.backgroundColor = '#EDEEC9'
-    this.fontsReady = false
-    this.fontsLoaded = this.fontsLoaded.bind(this)
+    this.stage.backgroundColor = '#000'
+    this.game.scale.pageAlignHorizontally = true
+    this.game.scale.pageAlignVertically = true
+    this.game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL
+    this.game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL
+    this.game.scale.startFullScreen(false)
   }
 
   preload () {
-    WebFont.load({
-      google: {
-        families: ['Bangers']
-      },
-      active: this.fontsLoaded
-    })
-
-    let text = this.add.text(this.world.centerX, this.world.centerY, 'loading fonts', { font: '16px Arial', fill: '#dddddd', align: 'center' })
+    let text = this.add.text(this.world.centerX, this.world.centerY, 'Loading', { font: '16px Arial', fill: '#ffffff', align: 'center' })
     text.anchor.setTo(0.5, 0.5)
 
-    this.load.image('loaderBg', './assets/images/loader-bg.png')
-    this.load.image('loaderBar', './assets/images/loader-bar.png')
+    this.game.load.spritesheet('ship', '/assets/ship.png', 48, 32);
+    this.game.load.spritesheet('bullet', '/assets/bullet.png', 5, 5);
+    this.load.onLoadComplete.add(this.loadComplete, this)
   }
 
-  render () {
-    if (this.fontsReady) {
-      this.state.start('Splash')
-    }
+  loadComplete () {
+    this.state.start('Game')
   }
 
-  fontsLoaded () {
-    this.fontsReady = true
-  }
+
 }
