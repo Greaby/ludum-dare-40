@@ -10,6 +10,20 @@ export default class extends Phaser.State {
             y: 5000
         }
 
+        this.game.color = {
+            a: 255,
+            b: 33,
+            color: 4280364209,
+            color32: -16777216,
+            g: 44,
+            h: 0,
+            l: 0,
+            r: 177,
+            rgba: "rgba(0,200,133,1)",
+            s: 0,
+            v: 0
+        }
+
         this.matter = 10000
         this.health = 100
         this.deadzoneBorder = 300
@@ -18,6 +32,9 @@ export default class extends Phaser.State {
     preload () {}
 
     create () {
+        this.createStars()
+
+
         this.game.world.setBounds(0, 0, this.world.x, this.world.y)
         this.game.physics.startSystem(Phaser.Physics.P2JS)
 
@@ -27,22 +44,29 @@ export default class extends Phaser.State {
             'ship'
         )
 
+        this.ship.scale.set(1.5)
+        this.ship.smoothed = false
+
+        this.tooltip = this.game.make.bitmapData(48, 32)
+        //this.tooltip.fill(0, 0, 0)
+        this.tooltip.rect(20, 10, 22, 12, this.game.color.rgba)
+        this.tooltip.rect(23, 25, 11, 5, this.game.color.rgba)
+        this.tooltip.rect(23, 2, 11, 5, this.game.color.rgba)
+
+
+        this.ship.addChild(game.make.sprite(-34, -16, this.tooltip));
+        this.ship.addChild(game.make.sprite(-34, -16, 'ship'));
+
+
         this.ship.animations.add('propel', [1,2])
-        this.ship.anchor.setTo(0.4, 0.5)
+        this.ship.anchor.setTo(0.7, 0.5)
         this.game.physics.enable(this.ship, Phaser.Physics.ARCADE)
 
         this.ship.body.maxVelocity.setTo(config.maxSpeed, config.maxSpeed)
         this.ship.body.drag.setTo(config.drag, config.drag)
 
 
-        this.weapon = game.add.weapon(30, 'bullet')
-        this.weapon.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
-        this.weapon.bulletSpeed = 600;
-        this.weapon.fireRate = 100;
-        this.weapon.trackSprite(this.ship, 48, 0, true);
-        this.weapon.onFire.add(function() {
-            this.matter -= 10
-        }, this)
+        this.createWeapon()
 
         this.game.camera.follow(this.ship);
         this.game.camera.deadzone = new Phaser.Rectangle(this.deadzoneBorder, this.deadzoneBorder, config.width - this.deadzoneBorder*2, config.height - this.deadzoneBorder*2);
@@ -63,9 +87,28 @@ export default class extends Phaser.State {
         this.matterText.anchor.set(1, 0)
         this.matterText.fixedToCamera = true
 
-        this.createStars()
+        game.time.events.loop(5000, this.createAsteroid, this)
     }
 
+    createWeapon () {
+        let bullet = this.game.make.bitmapData(10, 10)
+        bullet.rect(0, 0, 6, 6, this.game.color.rgba)
+        bullet.rect(1, 1, 4, 4, "rgba(255,255,255,0.8)")
+
+        this.weapon = game.add.weapon(30, bullet)
+        this.weapon.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
+        this.weapon.bulletSpeed = 600;
+        this.weapon.fireRate = 100;
+        this.weapon.trackSprite(this.ship, 32, 0, true);
+        this.weapon.onFire.add(function() {
+            this.matter -= 10
+        }, this)
+    }
+
+
+    createAsteroid () {
+        console.log("createAsteroid")
+    }
 
     createStars () {
 
@@ -85,6 +128,8 @@ export default class extends Phaser.State {
         if (this.matter <= 0) {
             this.die();
         }
+
+        this.game.world.wrap(this.ship, 0, true)
     }
 
     propel () {

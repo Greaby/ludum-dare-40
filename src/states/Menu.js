@@ -3,40 +3,38 @@ import Phaser from 'phaser'
 export default class extends Phaser.State {
 
     init () {
-        this.game.color = {
-            r: 55,
-            g: 55,
-            b: 55
-        };
+        this.game.color = { rgba: "rgba(78,163,42,1)"};
     }
 
     create () {
         this.setStars()
 
-
-        this.colorPicker = game.make.bitmapData(256, 256)
+        this.colorPicker = game.make.bitmapData(200, 120)
         this.colorPicker.draw('color-picker')
         this.colorPicker.update()
         this.colorPicker.addToWorld()
 
-
-        this.ship = this.game.add.group()
+        this.ship = this.game.add.sprite(400, 500, 'ship')
         this.ship.smoothed = false
         this.ship.scale.set(5)
         this.ship.angle = 185
-        this.ship.x = 400
-        this.ship.y = 500
 
-        this.tooltip = this.game.make.bitmapData(10, 10)
-        this.ship.cockpit = this.ship.create(0, 0, this.tooltip)
-        this.ship.cockpit.x = 10
-        this.ship.cockpit.y = -5
-
+        this.tooltip = this.game.make.bitmapData(48, 32)
+        //this.tooltip.fill(0, 0, 0)
+        this.tooltip.rect(20, 10, 22, 12, this.game.color.rgba)
+        this.tooltip.rect(23, 25, 11, 5, this.game.color.rgba)
+        this.tooltip.rect(23, 2, 11, 5, this.game.color.rgba)
 
 
-        this.ship.sprite = this.ship.create(-24, -16, 'ship')
-        this.ship.sprite.animations.add('propel', [1,2])
-        this.ship.sprite.play('propel', 10, true)
+        this.ship.addChild(game.make.sprite(0, 0, this.tooltip));
+        this.ship.addChild(game.make.sprite(0, 0, 'ship'));
+
+        this.ship.animations.add('propel', [1,2])
+        this.ship.play('propel', 10, true)
+
+
+
+        this.createWeapon()
 
         let animation = game.add.tween(this.ship).to({x: 800}, 6000, Phaser.Easing.Sinusoidal.InOut, true, 0, -1)
         animation.yoyo(true)
@@ -45,6 +43,17 @@ export default class extends Phaser.State {
         animation.yoyo(true)
 
         this.game.input.addMoveCallback(this.getColor, this)
+    }
+
+    createWeapon () {
+        this.bullet = this.game.make.bitmapData(20, 20)
+
+        this.weapon = game.add.weapon(3, this.bullet)
+        this.weapon.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
+        this.weapon.bulletSpeed = 1200;
+        this.weapon.fireRate = 600;
+        this.weapon.trackSprite(this.ship, 260, 80, true);
+
     }
 
 
@@ -66,17 +75,25 @@ export default class extends Phaser.State {
 
         if (game.input.activePointer.isDown && x >= 0 && x <= this.colorPicker.width && y >= 0 && y <= this.colorPicker.height) {
             this.game.color = this.colorPicker.getPixelRGB(Math.floor(x), Math.floor(y))
-
-            this.tooltip.fill(0, 0, 0)
-            this.tooltip.rect(0, 0, 64, 64, this.game.color.rgba)
         }
     }
 
     render () {
-        this.cockpit
     }
 
     update () {
+
+        this.tooltip.clear()
+        this.tooltip.rect(20, 10, 22, 12, this.game.color.rgba)
+        this.tooltip.rect(23, 25, 11, 5, this.game.color.rgba)
+        this.tooltip.rect(23, 2, 11, 5, this.game.color.rgba)
+
+        this.bullet.clear()
+        this.bullet.rect(0, 0, 15, 15, this.game.color.rgba)
+        this.bullet.rect(1, 1, 13, 13, "rgba(255,255,255,0.8)")
+
         this.emitter.angle = this.ship.angle - 180
+
+        this.weapon.fire()
     }
 }

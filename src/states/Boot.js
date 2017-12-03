@@ -22,7 +22,7 @@ export default class extends Phaser.State {
   }
 
   loadComplete () {
-    this.state.start('Menu')
+    this.state.start('Game')
   }
 
 
