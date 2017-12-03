@@ -31,6 +31,14 @@ export default class extends Phaser.State {
 
     preload () {}
 
+    randomX() {
+        return this.deadzoneBorder + Math.round(Math.random() * (this.world.x - this.deadzoneBorder * 2));
+    }
+
+    randomY() {
+        return this.deadzoneBorder + Math.round(Math.random() * (this.world.y - this.deadzoneBorder * 2));
+    }
+
     create () {
         this.createStars()
 
@@ -39,8 +47,8 @@ export default class extends Phaser.State {
         this.game.physics.startSystem(Phaser.Physics.P2JS)
 
         this.ship = this.game.add.sprite(
-            this.deadzoneBorder + Math.round(Math.random() * (this.world.x - this.deadzoneBorder * 2)),
-            this.deadzoneBorder + Math.round(Math.random() * (this.world.y - this.deadzoneBorder * 2)),
+            this.randomX(),
+            this.randomY(),
             'ship'
         )
 
@@ -87,7 +95,45 @@ export default class extends Phaser.State {
         this.matterText.anchor.set(1, 0)
         this.matterText.fixedToCamera = true
 
-        game.time.events.loop(5000, this.createAsteroid, this)
+
+        this.ateroids = game.add.group()
+        this.ateroids.enableBody = true
+        this.ateroids.physicsBodyType = Phaser.Physics.ARCADE
+
+        this.matters = game.add.group()
+        this.matters.enableBody = true
+        this.matters.physicsBodyType = Phaser.Physics.ARCADE
+
+        this.createAsteroid()
+        game.time.events.loop(10000, this.createAsteroid, this)
+    }
+
+    hitAsteroid (bullet, asteroid) {
+        bullet.kill()
+
+        asteroid.life -= 1
+
+        if(asteroid.life <= 0){
+            asteroid.destroy()
+
+            for (let index = 0; index < 15; index++) {
+                this.createMatter(asteroid.x, asteroid.y);
+            }
+        }
+
+        this.createMatter(asteroid.x, asteroid.y);
+    }
+
+    createMatter (x, y) {
+        let matter = game.make.graphics(0, 0);
+        matter.lineStyle(0);
+        matter.beginFill(0xFF00FF, 1);
+        matter.drawCircle(470, 10, 10);
+        matter.endFill();
+        let sprite = this.matters.create(x, y, matter.generateTexture())
+        sprite.anchor.setTo(0.5,0.5);
+        sprite.body.velocity = {x:Math.random()*200 - 100,y:Math.random()*200 - 100}
+        sprite.body.drag.setTo(50)
     }
 
     createWeapon () {
@@ -107,7 +153,18 @@ export default class extends Phaser.State {
 
 
     createAsteroid () {
-        console.log("createAsteroid")
+        //let sprite = game.add.sprite(this.randomX(),this.randomY());
+
+
+        let asteroid = game.make.graphics(0, 0);
+        asteroid.lineStyle(0);
+        asteroid.beginFill(0xFFFF0B, 1);
+        asteroid.drawCircle(470, 100, 100);
+        asteroid.endFill();
+        let sprite = this.ateroids.create(this.randomX(),this.randomY(), asteroid.generateTexture())
+        sprite.anchor.setTo(0.5,0.5);
+        sprite.life = Math.random() * 20
+
     }
 
     createStars () {
@@ -129,7 +186,14 @@ export default class extends Phaser.State {
             this.die();
         }
 
+        this.game.physics.arcade.overlap(this.weapon.bullets, this.ateroids, this.hitAsteroid, null, this);
+        this.game.physics.arcade.overlap(this.ship, this.matters, this.getMatter, null, this);
         this.game.world.wrap(this.ship, 0, true)
+    }
+
+    getMatter (ship, matter) {
+        this.matter += 100
+        matter.destroy()
     }
 
     propel () {

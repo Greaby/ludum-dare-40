@@ -9,12 +9,16 @@ export default class extends Phaser.State {
     create () {
         this.setStars()
 
+        let logo = game.add.sprite(game.width / 2, 250, 'logo')
+        logo.anchor.set(0.5)
+        logo.scale.set(0.8)
+
         this.colorPicker = game.make.bitmapData(200, 120)
         this.colorPicker.draw('color-picker')
         this.colorPicker.update()
         this.colorPicker.addToWorld()
 
-        this.ship = this.game.add.sprite(400, 500, 'ship')
+        this.ship = this.game.add.sprite(400, 600, 'ship')
         this.ship.smoothed = false
         this.ship.scale.set(5)
         this.ship.angle = 185
