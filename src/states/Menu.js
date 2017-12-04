@@ -19,8 +19,6 @@ export default class extends Phaser.State {
         this.colorPicker.update()
         this.colorPicker.addToWorld(this.colorPicker.x, this.colorPicker.y)
 
-        console.log(this.colorPicker)
-
         this.ship = this.game.add.sprite(500, 600, 'ship')
         this.ship.smoothed = false
         this.ship.scale.set(5)

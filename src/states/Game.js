@@ -11,7 +11,6 @@ export default class extends Phaser.State {
             y: 5000
         }
 
-        this.combo = 1
 
         this.cargo = 8000
 
@@ -22,6 +21,12 @@ export default class extends Phaser.State {
         this.barLength = 300
 
         this.game.score = 0
+
+        this.date = new Date()
+        this.date.setDate(1)
+        this.date.setFullYear(this.date.getFullYear() + 200);
+
+        this.pay = 500
     }
 
 
@@ -92,17 +97,11 @@ export default class extends Phaser.State {
             Phaser.Keyboard.ENTER
         ]);
 
-        this.scoreText = this.game.add.text(10, 10, this.matter, {
-            font: '30px arial',
+        this.dateText = this.game.add.text(30, 20, this.matter, {
+            font: '60px Gridlocked',
             fill: '#ffffff'
         })
-        this.scoreText.fixedToCamera = true
-
-        this.comboText = this.game.add.text(10, 50, this.combo, {
-            font: '30px arial',
-            fill: '#28d63f'
-        })
-        this.comboText.fixedToCamera = true
+        this.dateText.fixedToCamera = true
 
 
         this.ateroids = game.add.group()
@@ -117,10 +116,45 @@ export default class extends Phaser.State {
             this.createAsteroid()
         }
 
-        //game.time.events.loop(8000, this.createAsteroid, this)
+        game.time.events.loop(8000, this.createAsteroid, this)
 
         this.healthBar = game.add.graphics(game.width - this.barLength - 20, 20)
         this.healthBar.fixedToCamera = true
+
+        game.time.events.loop(1000, this.newDay, this)
+
+    }
+
+    newDay () {
+        let month = this.date.getMonth()
+        this.date.setDate(this.date.getDate() + 1)
+
+        this.game.score += 100
+
+        let newMonth = this.date.getMonth()
+
+        if(month !== newMonth) {
+            game.sound.play('cash', 0.2)
+
+            this.matter -= this.pay
+
+            let text = game.add.text(this.ship.x, this.ship.y - 55, "ship rental -"+this.pay, {
+                font: '40px Gridlocked',
+                fill: '#f22121',
+                align: 'center'
+            })
+            text.anchor.set(0.5, 0.5)
+            text.angle = -5
+
+
+            let tween = game.add.tween(text).to({alpha: 0, y: this.ship.y - 105}, Phaser.Timer.SECOND, 'Linear').start()
+            tween.onComplete.add(function () {
+                text.destroy()
+            })
+
+            this.pay += 100
+            this.cargo += 100
+        }
     }
 
     drawHealthBar () {
@@ -181,7 +215,7 @@ export default class extends Phaser.State {
         this.weapon.trackSprite(this.ship, 32, 0, true);
         this.weapon.onFire.add(function() {
             game.sound.play('fire', 0.2)
-            this.matter -= 10
+            this.matter -= 15
         }, this)
     }
 
@@ -221,15 +255,6 @@ export default class extends Phaser.State {
             this.die();
         }
 
-        if(this.input.keyboard.isDown(Phaser.Keyboard.ENTER)) {
-            this.matter -= 30;
-
-            this.game.score += Math.ceil(this.combo)
-            this.combo += 1 / 10
-        } else {
-            this.combo = 1
-        }
-
         this.game.physics.arcade.overlap(this.weapon.bullets, this.ateroids, this.hitAsteroid, null, this);
         this.game.physics.arcade.overlap(this.ship, this.matters, this.getMatter, null, this)
         this.game.world.wrap(this.ship, 0, true)
@@ -240,6 +265,21 @@ export default class extends Phaser.State {
     getMatter (ship, matter) {
         if(!this.isCargoFull()) {
             this.matter += 75
+
+            let text = game.add.text(this.ship.x, this.ship.y-15, "$$", {
+                font: '30px Gridlocked',
+                fill: '#09c416',
+                align: 'center'
+            })
+            text.anchor.set(0.5, 0.5)
+            text.angle = -5
+            game.sound.play('blop', 0.2)
+
+            let tween = game.add.tween(text).to({alpha: 0, y: this.ship.y - 65}, Phaser.Timer.SECOND, 'Linear').start()
+            tween.onComplete.add(function () {
+                text.destroy()
+            })
+
             matter.destroy()
         }
     }
@@ -274,7 +314,7 @@ export default class extends Phaser.State {
     }
 
     fire () {
-        if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+        if (this.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) || this.input.keyboard.isDown(Phaser.Keyboard.ENTER)) {
             this.weapon.fire();
         }
     }
@@ -284,13 +324,9 @@ export default class extends Phaser.State {
     }
 
     render () {
-        this.scoreText.text = "Score : " + formatNumber(this.game.score, 2)
-
-        if(this.combo > 1) {
-            this.comboText.text = "Combo : " + Math.ceil(this.combo)
-        } else {
-            this.comboText.text = ""
-        }
+        this.dateText.text = "Score : " + formatNumber(this.game.score, 2)
+        this.dateText.text = this.date.toLocaleDateString("en", {year: 'numeric', month: 'short', day: 'numeric' })
+        this.dateText.bringToTop()
 
         if(config.debug) {
             this.game.debug.cameraInfo(this.game.camera, 32, 32);

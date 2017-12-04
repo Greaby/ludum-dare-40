@@ -29,6 +29,9 @@ https://opengameart.org/content/dystopia-continues
 Little Robot Sound Factory
 https://opengameart.org/content/sci-fi-sound-effects-library
 
+Mark DiAngelo
+http://soundbible.com/2067-Blop.html
+
 ==============================================================
 
 https://github.com/lean/phaser-es6-webpack

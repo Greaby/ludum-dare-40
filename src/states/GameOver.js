@@ -18,14 +18,14 @@ export default class extends Phaser.State {
         }
 
         let scoreText = game.add.text(game.width / 2, 200, 'Score : ' + formatNumber(this.game.score, 2), {
-            font: '100px Arial',
+            font: '100px Gridlocked',
             fill: '#ffffff'
         })
         scoreText.padding.set(10, 10)
         scoreText.anchor.set(0.5, 0.5)
 
         let bestText = game.add.text(game.width / 2, 300, 'Best : ' + formatNumber(this.game.best, 2), {
-            font: '50px Arial',
+            font: '50px Gridlocked',
             fill: '#ffffff'
         })
         bestText.padding.set(100, 100)

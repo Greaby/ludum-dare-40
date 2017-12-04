@@ -28,6 +28,8 @@ export default class extends Phaser.State {
     this.load.audio('menu-select', ['assets/menu-select.mp3'])
     this.load.audio('drive', ['assets/drive.mp3'])
     this.load.audio('fire', ['assets/fire.mp3'])
+    this.load.audio('cash', ['assets/cash.mp3'])
+    this.load.audio('blop', ['assets/blop.mp3'])
     this.load.onLoadComplete.add(this.loadComplete, this)
   }
 
