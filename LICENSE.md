@@ -23,6 +23,14 @@ SOFTWARE.
 
 ==============================================================
 
+Eric Matyas
+https://opengameart.org/content/dystopia-continues
+
+Little Robot Sound Factory
+https://opengameart.org/content/sci-fi-sound-effects-library
+
+==============================================================
+
 https://github.com/lean/phaser-es6-webpack
 
 The MIT License (MIT)

@@ -1,25 +1,36 @@
 import Phaser from 'phaser'
+import {formatNumber} from '../utils'
 
 export default class extends Phaser.State {
 
     init () {}
 
     create () {
-        game.sound.play('background-music', 0.2, true)
+
         this.setStars()
 
-        let logo = game.add.sprite(game.width / 2, 250, 'logo')
-        logo.anchor.set(0.5)
-        logo.scale.set(0.8)
+        if (this.game.score > this.game.best) {
+            this.game.best = this.game.score
+        }
 
-        this.colorPicker = game.make.bitmapData(200, 120)
-        this.colorPicker.x = 500
-        this.colorPicker.y = 650
-        this.colorPicker.draw('color-picker')
-        this.colorPicker.update()
-        this.colorPicker.addToWorld(this.colorPicker.x, this.colorPicker.y)
+        if (this.game.localStorageAvailable) {
+            localStorage.setItem('best', this.game.best)
+        }
 
-        console.log(this.colorPicker)
+        let scoreText = game.add.text(game.width / 2, 200, 'Score : ' + formatNumber(this.game.score, 2), {
+            font: '100px Arial',
+            fill: '#ffffff'
+        })
+        scoreText.padding.set(10, 10)
+        scoreText.anchor.set(0.5, 0.5)
+
+        let bestText = game.add.text(game.width / 2, 300, 'Best : ' + formatNumber(this.game.best, 2), {
+            font: '50px Arial',
+            fill: '#ffffff'
+        })
+        bestText.padding.set(100, 100)
+        bestText.anchor.set(0.5, 0.5)
+
 
         this.ship = this.game.add.sprite(500, 600, 'ship')
         this.ship.smoothed = false
@@ -28,9 +39,9 @@ export default class extends Phaser.State {
 
         this.tooltip = this.game.make.bitmapData(48, 32)
         //this.tooltip.fill(0, 0, 0)
-        this.tooltip.rect(20, 10, 22, 12, this.game.color.rgba)
-        this.tooltip.rect(23, 25, 11, 5, this.game.color.rgba)
-        this.tooltip.rect(23, 2, 11, 5, this.game.color.rgba)
+        this.tooltip.rect(20, 10, 22, 12, this.game.color)
+        this.tooltip.rect(23, 25, 11, 5, this.game.color)
+        this.tooltip.rect(23, 2, 11, 5, this.game.color)
 
 
         this.ship.addChild(game.make.sprite(0, 0, this.tooltip));
@@ -38,7 +49,6 @@ export default class extends Phaser.State {
 
         this.ship.animations.add('propel', [1,2])
         this.ship.play('propel', 10, true)
-
 
 
         this.createWeapon()
@@ -49,9 +59,7 @@ export default class extends Phaser.State {
         animation = game.add.tween(this.ship).to({angle: '-10'}, 13000, Phaser.Easing.Sinusoidal.InOut, true, 0, -1)
         animation.yoyo(true)
 
-        this.game.input.addMoveCallback(this.getColor, this)
-
-        this.button = game.add.button(game.width / 2, game.height / 2 + 350, 'play-button', function () {
+        this.button = game.add.button(game.width / 2, game.height / 2 + 350, 'replay-button', function () {
             game.sound.play('menu-select', 0.2)
             this.state.start('Game')
         }, this)
@@ -84,31 +92,12 @@ export default class extends Phaser.State {
         this.emitter.start(false, 2600, 5, 0);
     }
 
-    getColor (pointer, x, y) {
-
-        if (game.input.activePointer.isDown && x >= this.colorPicker.x && x <= this.colorPicker.width + this.colorPicker.x && y >= this.colorPicker.y && y <= this.colorPicker.height + this.colorPicker.y) {
-            let color = this.colorPicker.getPixelRGB(Math.floor(x - this.colorPicker.x), Math.floor(y - this.colorPicker.y))
-            this.game.color = color.rgba
-
-            if (this.game.localStorageAvailable) {
-                localStorage.setItem('color', this.game.color)
-            }
-        }
-    }
 
     render () {
     }
 
     update () {
 
-        this.tooltip.clear()
-        this.tooltip.rect(20, 10, 22, 12, this.game.color)
-        this.tooltip.rect(23, 25, 11, 5, this.game.color)
-        this.tooltip.rect(23, 2, 11, 5, this.game.color)
-
-        this.bullet.clear()
-        this.bullet.rect(0, 0, 15, 15, this.game.color)
-        this.bullet.rect(1, 1, 13, 13, "rgba(255,255,255,0.8)")
 
         this.emitter.angle = this.ship.angle - 180
 

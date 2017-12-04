@@ -2,6 +2,7 @@
 import Phaser from 'phaser'
 import Mushroom from '../sprites/Mushroom'
 import config from '../config'
+import {formatNumber} from '../utils'
 
 export default class extends Phaser.State {
     init () {
@@ -10,24 +11,26 @@ export default class extends Phaser.State {
             y: 5000
         }
 
-        this.game.color = {
-            a: 255,
-            b: 33,
-            color: 4280364209,
-            color32: -16777216,
-            g: 44,
-            h: 0,
-            l: 0,
-            r: 177,
-            rgba: "rgba(0,200,133,1)",
-            s: 0,
-            v: 0
-        }
+        this.combo = 1
 
-        this.matter = 10000
+        this.cargo = 8000
+
+        this.matter = 2500
         this.health = 100
         this.deadzoneBorder = 300
+
+        this.barLength = 300
+
+        this.game.score = 0
     }
+
+
+    isCargoFull () {
+        return this.matter >= this.cargo
+    }
+
+
+
 
     preload () {}
 
@@ -57,9 +60,9 @@ export default class extends Phaser.State {
 
         this.tooltip = this.game.make.bitmapData(48, 32)
         //this.tooltip.fill(0, 0, 0)
-        this.tooltip.rect(20, 10, 22, 12, this.game.color.rgba)
-        this.tooltip.rect(23, 25, 11, 5, this.game.color.rgba)
-        this.tooltip.rect(23, 2, 11, 5, this.game.color.rgba)
+        this.tooltip.rect(20, 10, 22, 12, this.game.color)
+        this.tooltip.rect(23, 25, 11, 5, this.game.color)
+        this.tooltip.rect(23, 2, 11, 5, this.game.color)
 
 
         this.ship.addChild(game.make.sprite(-34, -16, this.tooltip));
@@ -85,15 +88,21 @@ export default class extends Phaser.State {
             Phaser.Keyboard.RIGHT,
             Phaser.Keyboard.UP,
             Phaser.Keyboard.DOWN,
-            Phaser.Keyboard.SPACEBAR
+            Phaser.Keyboard.SPACEBAR,
+            Phaser.Keyboard.ENTER
         ]);
 
-        this.matterText = this.game.add.text(this.game.width - 10, 10, this.matter, {
+        this.scoreText = this.game.add.text(10, 10, this.matter, {
             font: '30px arial',
             fill: '#ffffff'
         })
-        this.matterText.anchor.set(1, 0)
-        this.matterText.fixedToCamera = true
+        this.scoreText.fixedToCamera = true
+
+        this.comboText = this.game.add.text(10, 50, this.combo, {
+            font: '30px arial',
+            fill: '#28d63f'
+        })
+        this.comboText.fixedToCamera = true
 
 
         this.ateroids = game.add.group()
@@ -104,8 +113,32 @@ export default class extends Phaser.State {
         this.matters.enableBody = true
         this.matters.physicsBodyType = Phaser.Physics.ARCADE
 
-        this.createAsteroid()
-        game.time.events.loop(10000, this.createAsteroid, this)
+        for (let index = 0; index < 15; index++) {
+            this.createAsteroid()
+        }
+
+        //game.time.events.loop(8000, this.createAsteroid, this)
+
+        this.healthBar = game.add.graphics(game.width - this.barLength - 20, 20)
+        this.healthBar.fixedToCamera = true
+    }
+
+    drawHealthBar () {
+        this.healthBar.clear()
+
+        // red bar
+        this.healthBar.beginFill(0xFF3300)
+        this.healthBar.drawRect(0, 0, this.barLength, 20)
+
+        // green bar
+        this.healthBar.beginFill(0x28d63f)
+        this.healthBar.drawRect(0, 0, Math.round((this.matter / this.cargo) * this.barLength), 20)
+
+        // border
+        this.healthBar.endFill()
+        this.healthBar.lineStyle(2, 0xFFFFFF, 1)
+        this.healthBar.drawRect(0, 0, this.barLength, 20)
+        this.healthBar.dirty = true
     }
 
     hitAsteroid (bullet, asteroid) {
@@ -115,8 +148,8 @@ export default class extends Phaser.State {
 
         if(asteroid.life <= 0){
             asteroid.destroy()
-
-            for (let index = 0; index < 15; index++) {
+            this.createAsteroid()
+            for (let index = 0; index < asteroid.Initlife; index++) {
                 this.createMatter(asteroid.x, asteroid.y);
             }
         }
@@ -125,20 +158,20 @@ export default class extends Phaser.State {
     }
 
     createMatter (x, y) {
-        let matter = game.make.graphics(0, 0);
-        matter.lineStyle(0);
-        matter.beginFill(0xFF00FF, 1);
-        matter.drawCircle(470, 10, 10);
-        matter.endFill();
-        let sprite = this.matters.create(x, y, matter.generateTexture())
-        sprite.anchor.setTo(0.5,0.5);
+
+        let sprite = this.matters.create(x, y, 'matter')
+        sprite.anchor.setTo(0.5,0.5)
         sprite.body.velocity = {x:Math.random()*200 - 100,y:Math.random()*200 - 100}
-        sprite.body.drag.setTo(50)
+        sprite.body.drag.setTo(20)
+        sprite.angle = Math.floor(Math.random() * 360)
+        sprite.frame = Math.floor(Math.random() * 3)
+        sprite.body.angularVelocity = Math.floor(Math.random() * 120) - 60;
+        sprite.scale.set(3)
     }
 
     createWeapon () {
         let bullet = this.game.make.bitmapData(10, 10)
-        bullet.rect(0, 0, 6, 6, this.game.color.rgba)
+        bullet.rect(0, 0, 6, 6, this.game.color)
         bullet.rect(1, 1, 4, 4, "rgba(255,255,255,0.8)")
 
         this.weapon = game.add.weapon(30, bullet)
@@ -147,6 +180,7 @@ export default class extends Phaser.State {
         this.weapon.fireRate = 100;
         this.weapon.trackSprite(this.ship, 32, 0, true);
         this.weapon.onFire.add(function() {
+            game.sound.play('fire', 0.2)
             this.matter -= 10
         }, this)
     }
@@ -155,16 +189,17 @@ export default class extends Phaser.State {
     createAsteroid () {
         //let sprite = game.add.sprite(this.randomX(),this.randomY());
 
-
-        let asteroid = game.make.graphics(0, 0);
-        asteroid.lineStyle(0);
-        asteroid.beginFill(0xFFFF0B, 1);
-        asteroid.drawCircle(470, 100, 100);
-        asteroid.endFill();
-        let sprite = this.ateroids.create(this.randomX(),this.randomY(), asteroid.generateTexture())
+        let sprite = this.ateroids.create(this.randomX(),this.randomY(), 'asteroid')
+        sprite.angle = Math.floor(Math.random() * 360)
         sprite.anchor.setTo(0.5,0.5);
-        sprite.life = Math.random() * 20
+        sprite.Initlife = Math.floor(Math.random() * 20)
+        sprite.life = sprite.Initlife
+        sprite.scale.set(sprite.life / 4)
+        sprite.body.angularVelocity = Math.floor(Math.random() * 60) - 30;
+        sprite.body.bounce.setTo(0.5, 0.5);
 
+
+        this.ship.bringToTop()
     }
 
     createStars () {
@@ -186,19 +221,33 @@ export default class extends Phaser.State {
             this.die();
         }
 
+        if(this.input.keyboard.isDown(Phaser.Keyboard.ENTER)) {
+            this.matter -= 30;
+
+            this.game.score += Math.ceil(this.combo)
+            this.combo += 1 / 10
+        } else {
+            this.combo = 1
+        }
+
         this.game.physics.arcade.overlap(this.weapon.bullets, this.ateroids, this.hitAsteroid, null, this);
-        this.game.physics.arcade.overlap(this.ship, this.matters, this.getMatter, null, this);
+        this.game.physics.arcade.overlap(this.ship, this.matters, this.getMatter, null, this)
         this.game.world.wrap(this.ship, 0, true)
+
+        this.drawHealthBar()
     }
 
     getMatter (ship, matter) {
-        this.matter += 100
-        matter.destroy()
+        if(!this.isCargoFull()) {
+            this.matter += 75
+            matter.destroy()
+        }
     }
 
     propel () {
         if(this.input.keyboard.isDown(Phaser.Keyboard.UP)) {
             if(!this.propelOn) {
+                game.sound.play('drive', 0.2)
                 this.game.add.tween(game.camera).to({x: game.camera.x - Math.cos(this.ship.rotation) * 20, y: game.camera.y - Math.sin(this.ship.rotation) * 20}, 40, Phaser.Easing.Bounce.InOut, true, 0, 1, true)
                 this.propelOn = true
             }
@@ -231,12 +280,17 @@ export default class extends Phaser.State {
     }
 
     die() {
-
+        this.state.start('GameOver')
     }
 
     render () {
-        this.matterText.text = this.matter
+        this.scoreText.text = "Score : " + formatNumber(this.game.score, 2)
 
+        if(this.combo > 1) {
+            this.comboText.text = "Combo : " + Math.ceil(this.combo)
+        } else {
+            this.comboText.text = ""
+        }
 
         if(config.debug) {
             this.game.debug.cameraInfo(this.game.camera, 32, 32);
