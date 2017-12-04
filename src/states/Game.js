@@ -157,8 +157,8 @@ export default class extends Phaser.State {
                 text.destroy()
             })
 
-            this.pay += 100
-            this.cargo += 100
+            this.pay += 250
+            this.cargo += 250
         }
     }
 
