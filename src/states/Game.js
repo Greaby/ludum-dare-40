@@ -96,11 +96,17 @@ export default class extends Phaser.State {
             Phaser.Keyboard.ENTER
         ]);
 
-        this.dateText = this.game.add.text(30, 20, this.matter, {
+        this.dateText = this.game.add.text(30, 20, "", {
             font: '60px Gridlocked',
             fill: '#ffffff'
         })
         this.dateText.fixedToCamera = true
+
+        this.scoreText = this.game.add.text(30, 90, "", {
+            font: '40px Gridlocked',
+            fill: '#ffffff'
+        })
+        this.scoreText.fixedToCamera = true
 
 
         this.ateroids = game.add.group()
@@ -323,9 +329,11 @@ export default class extends Phaser.State {
     }
 
     render () {
-        this.dateText.text = "Score : " + formatNumber(this.game.score, 2)
         this.dateText.text = this.date.toLocaleDateString("en", {year: 'numeric', month: 'short', day: 'numeric' })
         this.dateText.bringToTop()
+
+        this.scoreText.text = "Score : " + formatNumber(this.game.score, 2)
+        this.scoreText.bringToTop()
 
         if(config.debug) {
             this.game.debug.cameraInfo(this.game.camera, 32, 32);
